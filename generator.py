@@ -18,6 +18,10 @@ def index():
 @app.route('/generate', methods=['POST'])
 async def generate():
     rows = int(request.form['rows'])
+    if rows < 0:
+        rows = 1
+    if rows > 500:
+        rows = 500
     columns = request.form.getlist('column')
     custom_columns = request.form.getlist('custom_column')
     csv_data = await generate_csv(rows, columns, custom_columns)  # await here
@@ -82,4 +86,4 @@ def send_csv(csv_data):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(port=5555)

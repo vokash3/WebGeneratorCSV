@@ -5,19 +5,22 @@
     <style>
         body {
             background-size: cover;
-            background: linear-gradient(to bottom right, #00ccff, #ff99cc) center;
+            background-color: #000;
+            color: #00ff00;
+            font-family: Arial, sans-serif;
         }
 
         h1 {
-            color: white;
+            color: #00ff00;
             text-align: center;
             margin-top: 150px;
+            margin-bottom: 10px;
             font-size: 36px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
 
         form {
-            background-color: rgba(255, 255, 255, 0.8);
+            background-color: rgba(44, 87, 72, 0.8);
             padding: 20px;
             width: 400px;
             margin: 0 auto;
@@ -32,22 +35,27 @@
             width: 100%;
             padding: 5px;
             margin-bottom: 10px;
+            color: #00ff00;
+            background-color: rgba(17, 93, 1, 0.8);
         }
 
         select {
             width: 100%;
             padding: 5px;
             margin-bottom: 10px;
+            color: #00ff00;
+            background-color: rgba(17, 93, 1, 0.8);
         }
 
         button {
-            padding: 8px 15px;
-            margin: 10px;
-            background-color: #3ea3d0;
+            padding: 10px 15px;
+            background-color: #00ff00;
             border: none;
-            color: white;
+            color: black;
             cursor: pointer;
             border-radius: 3px;
+            width: 100%;
+            font-size: 14px;
         }
 
         button:disabled {
@@ -64,11 +72,13 @@
 
         .remove-column {
             padding: 5px;
-            background-color: #f44336;
+            background-color: #00ff00;
+            text-align: center;
             border: none;
-            color: white;
+            color: rgba(2, 2, 2, 0.8);
             cursor: pointer;
-            border-radius: 50%;
+            width: 20px;
+            margin-bottom: 10px;
         }
 
         #status {
@@ -76,9 +86,25 @@
             margin-top: 20px;
             font-weight: bold;
             font-size: 80px;
-            background-color: beige;
-            border-radius: 50%;
-            color: #f44336;
+            background-color: black;
+            border-color: lime;
+            border: lime;
+            color: #00ff00;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 28px;
+                margin-top: 100px;
+            }
+
+            form {
+                width: 90%;
+            }
+
+            button {
+                font-size: 12px;
+            }
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -119,7 +145,7 @@
                 }
 
                 $(this).prop('disabled', true);
-                $('#status').text('Generating...');
+                $('#status').text('Генерация...');
 
                 var rows = $('#rows').val();
                 var formData = $('#form').serialize();
@@ -134,11 +160,11 @@
                         link.href = URL.createObjectURL(blob);
                         link.download = 'data.csv';
                         link.click();
-                        $('#status').text('Generated');
+                        $('#status').text('Успешно!');
                         $('#generate').prop('disabled', false);
                     },
                     error: function () {
-                        $('#status').text('Error');
+                        $('#status').text('Ошибка!');
                         $('#generate').prop('disabled', false);
                     }
                 });
@@ -146,12 +172,15 @@
 
             function isValidNumberOfRows() {
                 var rows = $('#rows').val();
-                var isValid = /^\d+$/.test(rows) && parseInt(rows) > 0;
+                var isValid = /^\d+$/.test(rows) && parseInt(rows) > 0 && parseInt(rows) <= 500;
+
                 if (!isValid) {
-                    alert('Число строк должно быть положительным!');
+                    alert('Число строк должно быть положительным и не больше 500!');
                 }
+
                 return isValid;
             }
+
         });
     </script>
 </head>
@@ -159,7 +188,7 @@
 <h1>CSV Generator</h1>
 <form id="form" action="/generate" method="post">
     <label for="rows">Число строк:</label>
-    <input type="text" name="rows" id="rows" required>
+    <input type="text" name="rows" id="rows" value="1" min="1" max="500" required>
     <br>
     <div id="columns">
         <div class="column">
@@ -168,17 +197,21 @@
                 <option value="products">Товары</option>
                 <option value="phone_numbers">Мобильные</option>
             </select>
-            <button type="button" class="remove-column">-</button>
+            <button type="button" class="remove-column">–</button>
         </div>
     </div>
-    <button type="button" id="add-column">Add Column</button>
+    <button type="button" id="add-column">Добавить столбец</button>
+    <br>
     <br>
     <div id="custom-columns">
         <!-- Custom columns will be added here -->
     </div>
-    <button type="button" id="add-custom-column">Add Custom Column</button>
+    <button type="button" id="add-custom-column">Добавить regex столбец</button>
     <br>
-    <button type="button" id="generate">Generate</button>
+    <br>
+    <br>
+    <br>
+    <button type="button" id="generate">Сгенерировать</button>
 </form>
 <p id="status"></p>
 </body>
