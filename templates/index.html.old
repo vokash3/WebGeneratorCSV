@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CSV Generator</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            var columnCount = 1;
+            var customColumnCount = 1;
+
+            $('#add-column').click(function() {
+                columnCount++;
+                var html = '<select name="column">' +
+                           '<option value="names">Names</option>' +
+                           '<option value="products">Products</option>' +
+                           '<option value="phone_numbers">Phone Numbers</option>' +
+                           '</select>';
+                $(html).appendTo('#columns');
+            });
+
+            $('#add-custom-column').click(function() {
+                customColumnCount++;
+                var html = '<input type="text" name="custom_column" placeholder="Enter a regex pattern">';
+                $(html).appendTo('#custom-columns');
+            });
+
+            $('#generate').click(function() {
+                $(this).prop('disabled', true);
+                $('#status').text('Generating...');
+
+                var rows = $('#rows').val();
+                var formData = $('#form').serialize();
+
+                $.ajax({
+                    url: '/generate',
+                    type: 'POST',
+                    data: formData,
+                    success: function(data) {
+                        var blob = new Blob([data]);
+                        var link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        link.download = 'data.csv';
+                        link.click();
+                        $('#status').text('Generated');
+                        $('#generate').prop('disabled', false);
+                    },
+                    error: function() {
+                        $('#status').text('Error');
+                        $('#generate').prop('disabled', false);
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>CSV Generator</h1>
+    <form id="form" action="/generate" method="post">
+        <label for="rows">Number of rows:</label>
+        <input type="text" name="rows" id="rows" required>
+        <br>
+        <div id="columns">
+            <select name="column">
+                <option value="names">Names</option>
+                <option value="products">Products</option>
+                <option value="phone_numbers">Phone Numbers</option>
+            </select>
+        </div>
+        <button type="button" id="add-column">Add Column</button>
+        <br>
+        <div id="custom-columns">
+{#            <input type="text" name="custom_column" placeholder="Enter a regex pattern">#}
+        </div>
+        <button type="button" id="add-custom-column">Add Custom Column</button>
+        <br>
+        <button type="button" id="generate">Generate</button>
+    </form>
+    <p id="status"></p>
+</body>
+</html>

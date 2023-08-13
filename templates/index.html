@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CSV Generator</title>
+    <style>
+        body {
+            background-size: cover;
+            background: linear-gradient(to bottom right, #00ccff, #ff99cc) center;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-top: 150px;
+            font-size: 36px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        form {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            width: 400px;
+            margin: 0 auto;
+            border-radius: 5px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+
+        select {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 8px 15px;
+            margin: 10px;
+            background-color: #3ea3d0;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        button:disabled {
+            background-color: gray;
+            cursor: not-allowed;
+        }
+
+        .column {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .remove-column {
+            padding: 5px;
+            background-color: #f44336;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        #status {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 80px;
+            background-color: beige;
+            border-radius: 50%;
+            color: #f44336;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            var columnCount = 1;
+            var customColumnCount = 1;
+
+            $('#add-column').click(function () {
+                columnCount++;
+                var html = '<div class="column">' +
+                    '<select name="column">' +
+                    '<option value="names">ФИО</option>' +
+                    '<option value="products">Товар</option>' +
+                    '<option value="phone_numbers">Мобильные</option>' +
+                    '</select>' +
+                    '<button type="button" class="remove-column">–</button>' +
+                    '</div>';
+                $(html).appendTo('#columns');
+            });
+
+            $('#add-custom-column').click(function () {
+                customColumnCount++;
+                var html = '<div class="column">' +
+                    '<input type="text" name="custom_column" placeholder="Enter a regex pattern">' +
+                    '<button type="button" class="remove-column">–</button>' +
+                    '</div>';
+                $(html).appendTo('#custom-columns');
+            });
+
+            $(document).on('click', '.remove-column', function () {
+                $(this).parent('.column').remove();
+            });
+
+            $('#generate').click(function () {
+                if (!isValidNumberOfRows()) {
+                    return;
+                }
+
+                $(this).prop('disabled', true);
+                $('#status').text('Generating...');
+
+                var rows = $('#rows').val();
+                var formData = $('#form').serialize();
+
+                $.ajax({
+                    url: '/generate',
+                    type: 'POST',
+                    data: formData,
+                    success: function (data) {
+                        var blob = new Blob([data]);
+                        var link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        link.download = 'data.csv';
+                        link.click();
+                        $('#status').text('Generated');
+                        $('#generate').prop('disabled', false);
+                    },
+                    error: function () {
+                        $('#status').text('Error');
+                        $('#generate').prop('disabled', false);
+                    }
+                });
+            });
+
+            function isValidNumberOfRows() {
+                var rows = $('#rows').val();
+                var isValid = /^\d+$/.test(rows) && parseInt(rows) > 0;
+                if (!isValid) {
+                    alert('Число строк должно быть положительным!');
+                }
+                return isValid;
+            }
+        });
+    </script>
+</head>
+<body>
+<h1>CSV Generator</h1>
+<form id="form" action="/generate" method="post">
+    <label for="rows">Число строк:</label>
+    <input type="text" name="rows" id="rows" required>
+    <br>
+    <div id="columns">
+        <div class="column">
+            <select name="column">
+                <option value="names">ФИО</option>
+                <option value="products">Товары</option>
+                <option value="phone_numbers">Мобильные</option>
+            </select>
+            <button type="button" class="remove-column">-</button>
+        </div>
+    </div>
+    <button type="button" id="add-column">Add Column</button>
+    <br>
+    <div id="custom-columns">
+        <!-- Custom columns will be added here -->
+    </div>
+    <button type="button" id="add-custom-column">Add Custom Column</button>
+    <br>
+    <button type="button" id="generate">Generate</button>
+</form>
+<p id="status"></p>
+</body>
+</html>
